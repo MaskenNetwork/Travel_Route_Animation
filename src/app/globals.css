@@ -1,0 +1,109 @@
+@import "tailwindcss";
+@import "./colors.css";
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: inherit;
+  overflow: hidden;
+}
+
+.glass {
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--panel-border);
+}
+
+.dark .glass {
+  background: var(--panel);
+  border-color: var(--panel-border);
+}
+
+.playback-panel {
+  background: var(--distance-panel-light);
+}
+
+.dark .playback-panel {
+  background: var(--distance-panel-dark);
+}
+
+.panel-surface {
+  background: var(--panel-strong);
+  border: 1px solid var(--panel-border);
+}
+
+.field-surface {
+  background: var(--field-bg);
+  border: 1px solid var(--panel-border);
+}
+
+.field-surface:hover {
+  background: var(--field-hover);
+}
+
+.top-action-surface {
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--panel-border);
+}
+
+.top-action-surface:hover {
+  background: color-mix(in srgb, var(--panel) 88%, var(--action-soft));
+}
+
+.playback-slider {
+  --slider-track: var(--field-bg);
+  background: var(--slider-track);
+  accent-color: var(--slider-accent);
+  transition: background-color 150ms ease, opacity 150ms ease;
+}
+
+.playback-slider.is-disabled {
+  --slider-accent: var(--slider-disabled);
+  opacity: 0.6;
+}
+
+.playback-slider::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--slider-track);
+}
+
+.playback-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.25rem;
+  border-radius: 9999px;
+  background: var(--slider-accent);
+}
+
+.playback-slider::-moz-range-track {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--slider-track);
+}
+
+.playback-slider::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--slider-accent);
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--panel-border);
+    border-radius: 10px;
+  }
+}

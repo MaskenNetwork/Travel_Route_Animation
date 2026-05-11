@@ -1,0 +1,158 @@
+:root {
+  /* Palette condivisa: allineata ai colori di rotta in theme-colors.ts. */
+  --color-ink-light: #0f172a;
+  --color-ink-dark: #ededed;
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #0c243c;
+  --color-route-light: #3264ff;
+  --color-route-dark: #6496ff;
+  --color-final-light: #ff6432;
+  --color-final-dark: #ff9664;
+
+  /* Sfondo principale dell'app e canvas dietro al globo. */
+  --background: #f8fafc;
+  /* Testo base di pannelli, pulsanti neutri e controlli. */
+  --foreground: var(--color-ink-light);
+  /* Superficie dei pannelli glass e dei contenitori principali. */
+  --panel: color-mix(in srgb, var(--color-surface-light) 98%, transparent);
+  /* Variante piu' solida per pannelli in primo piano. */
+  --panel-strong: var(--panel);
+  /* Bordi di pannelli, righe lista e separatori. */
+  --panel-border: color-mix(in srgb, var(--foreground) 8%, transparent);
+  /* Fondi tenui per liste, tab e gruppi di opzioni. */
+  --panel-muted: color-mix(in srgb, var(--foreground) 5%, transparent);
+  /* Sfondo di input, select e controlli neutri. */
+  --field-bg: color-mix(in srgb, var(--foreground) 4%, transparent);
+  /* Stato hover di campi, righe e opzioni non selezionate. */
+  --field-hover: color-mix(in srgb, var(--foreground) 8%, transparent);
+  /* Titoli e testo UI con enfasi alta. */
+  --text-strong: color-mix(in srgb, var(--foreground) 75%, transparent);
+  /* Testo secondario e descrizioni. */
+  --text-muted: color-mix(in srgb, var(--foreground) 55%, transparent);
+  /* Label piccole, icone secondarie e placeholder. */
+  --text-subtle: color-mix(in srgb, var(--foreground) 40%, transparent);
+  /* Microtesti meno importanti e scale degli slider. */
+  --text-faint: color-mix(in srgb, var(--foreground) 35%, transparent);
+  /* Colore primario per azioni, focus e selezioni. */
+  --action: var(--color-route-light);
+  /* Hover dei pulsanti primari. */
+  --action-hover: color-mix(in srgb, var(--action) 82%, black);
+  /* Sfondo leggero per badge, icone e risultati hover. */
+  --action-soft: color-mix(in srgb, var(--action) 10%, transparent);
+  /* Ombra dei pulsanti primari. */
+  --action-shadow: color-mix(in srgb, var(--action) 20%, transparent);
+  /* Ombra piu' evidente per il pulsante play principale. */
+  --action-shadow-strong: color-mix(in srgb, var(--action) 25%, transparent);
+  /* Testo e icone sopra pulsanti primari. */
+  --on-action: #ffffff;
+  /* Messaggi di errore e avvisi bloccanti. */
+  --danger: var(--color-final-light);
+  /* Sfondo dei box di errore. */
+  --danger-soft: color-mix(in srgb, var(--danger) 10%, transparent);
+  /* Bordo dei box di errore. */
+  --danger-border: color-mix(in srgb, var(--danger) 25%, transparent);
+  /* Icone e azioni di eliminazione. */
+  --delete: var(--danger);
+  /* Hover delle azioni di eliminazione. */
+  --delete-soft: color-mix(in srgb, var(--danger) 20%, transparent);
+  /* Colore attivo degli slider. */
+  --slider-accent: var(--action);
+  /* Colore degli slider disabilitati. */
+  --slider-disabled: color-mix(in srgb, var(--foreground) 45%, transparent);
+  /* Sfondo del toggle opzione tema chiaro. */
+  --light-option-bg: var(--color-surface-light);
+  /* Testo del toggle opzione tema chiaro. */
+  --light-option-text: var(--color-ink-light);
+  /* Sfondo del toggle opzione tema scuro. */
+  --dark-option-bg: #020617;
+  /* Testo del toggle opzione tema scuro. */
+  --dark-option-text: #ffffff;
+  /* Ombra del toggle tema scuro selezionato. */
+  --dark-option-shadow: color-mix(in srgb, black 20%, transparent);
+  /* Ombra del canvas del globo. */
+  --canvas-shadow: color-mix(in srgb, black 10%, transparent);
+  /* Overlay mobile quando si apre il pannello. */
+  --mobile-overlay: color-mix(in srgb, black 35%, transparent);
+  /* Barra di progresso nel pannello export. */
+  --export-progress: color-mix(in srgb, white 30%, transparent);
+
+  /* Bordo dei paesi sul globo in tema chiaro/scuro. */
+  --globe-border-light: color-mix(in srgb, var(--color-ink-light) 18%, transparent);
+  --globe-border-dark: color-mix(in srgb, white 22%, transparent);
+  /* Testo delle etichette sul globo in tema chiaro/scuro. */
+  --globe-label-light: #000000;
+  --globe-label-dark: #ffffff;
+  /* Contorno delle etichette sul globo in tema chiaro/scuro. */
+  --globe-label-shadow-light: color-mix(in srgb, white 90%, transparent);
+  --globe-label-shadow-dark: color-mix(in srgb, black 85%, transparent);
+  /* Ombra della rotta disegnata sul globo. */
+  --route-shadow: color-mix(in srgb, black 40%, transparent);
+  /* Bordo dei marker tappa in tema chiaro/scuro. */
+  --stop-stroke-light: var(--color-ink-light);
+  --stop-stroke-dark: #ffffff;
+  /* Velatura dell'orizzonte del globo in tema chiaro/scuro. */
+  --horizon-light: color-mix(in srgb, var(--color-route-light) 14%, transparent);
+  --horizon-dark: color-mix(in srgb, black 50%, transparent);
+  /* Punto trasparente iniziale della sfumatura orizzonte. */
+  --horizon-start: transparent;
+
+  /* Riquadro distanza in tema chiaro/scuro. */
+  --distance-panel-light: color-mix(in srgb, var(--color-surface-light) 84%, transparent);
+  --distance-panel-dark: color-mix(in srgb, var(--color-surface-dark) 78%, transparent);
+  --distance-border-light: color-mix(in srgb, var(--color-ink-light) 14%, transparent);
+  --distance-border-dark: color-mix(in srgb, white 18%, transparent);
+  --distance-label-light: color-mix(in srgb, var(--color-ink-light) 52%, transparent);
+  --distance-label-dark: color-mix(in srgb, white 58%, transparent);
+  --distance-unit-light: color-mix(in srgb, var(--color-ink-light) 62%, transparent);
+  --distance-unit-dark: color-mix(in srgb, white 72%, transparent);
+  --distance-digit-box-light: color-mix(in srgb, var(--color-ink-light) 8%, transparent);
+  --distance-digit-box-dark: color-mix(in srgb, white 10%, transparent);
+  --distance-digit-border-light: color-mix(in srgb, var(--color-ink-light) 10%, transparent);
+  --distance-digit-border-dark: color-mix(in srgb, white 12%, transparent);
+  --distance-digit-light: var(--color-ink-light);
+  --distance-digit-dark: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Override automatici quando il sistema preferisce il tema scuro. */
+    --background: #0a0a0a;
+    --foreground: var(--color-ink-dark);
+    --panel: var(--color-surface-dark);
+    --panel-strong: color-mix(in srgb, var(--color-ink-light) 96%, transparent);
+    --panel-border: color-mix(in srgb, white 10%, transparent);
+    --panel-muted: color-mix(in srgb, white 8%, transparent);
+    --field-bg: color-mix(in srgb, white 8%, transparent);
+    --field-hover: color-mix(in srgb, white 14%, transparent);
+    --action: var(--color-route-dark);
+    --danger: var(--color-final-dark);
+  }
+}
+
+.light {
+  /* Override applicati quando l'utente forza il tema chiaro. */
+  --background: #f8fafc;
+  --foreground: var(--color-ink-light);
+  --panel: color-mix(in srgb, var(--color-surface-light) 98%, transparent);
+  --panel-strong: var(--panel);
+  --panel-border: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --panel-muted: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --field-bg: color-mix(in srgb, var(--foreground) 4%, transparent);
+  --field-hover: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --action: var(--color-route-light);
+  --danger: var(--color-final-light);
+}
+
+.dark {
+  /* Override applicati quando l'utente forza il tema scuro. */
+  --background: #0a0a0a;
+  --foreground: var(--color-ink-dark);
+  --panel: var(--color-surface-dark);
+  --panel-strong: color-mix(in srgb, var(--color-ink-light) 96%, transparent);
+  --panel-border: color-mix(in srgb, white 10%, transparent);
+  --panel-muted: color-mix(in srgb, white 8%, transparent);
+  --field-bg: color-mix(in srgb, white 8%, transparent);
+  --field-hover: color-mix(in srgb, white 14%, transparent);
+  --action: var(--color-route-dark);
+  --danger: var(--color-final-dark);
+}
