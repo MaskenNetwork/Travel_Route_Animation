@@ -43,7 +43,7 @@ export function getCurrentDistanceFrame({
   const totalDistanceKm = completedDistanceKm + legDistanceKm;
 
   return {
-    totalDistance: convertDistance(totalDistanceKm, unit),
+    totalDistance: convertDistanceFromKm(totalDistanceKm, unit),
     unit,
   };
 }
@@ -54,6 +54,6 @@ export function formatDistanceValue(value: number, language: Language) {
   }).format(Math.round(value));
 }
 
-function convertDistance(distanceKm: number, unit: DistanceUnit) {
+export function convertDistanceFromKm(distanceKm: number, unit: DistanceUnit) {
   return unit === 'mi' ? distanceKm * KM_TO_MI : distanceKm;
 }

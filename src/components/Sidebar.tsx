@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Map, Settings2, X } from 'lucide-react';
 import { useApp } from '@/lib/store';
 import { getStopThemeColors } from '@/lib/theme-colors';
 import StopSearch from '@/components/sidebar/StopSearch';
 import StopsList from '@/components/sidebar/StopsList';
 import RouteStylePanel from '@/components/sidebar/RouteStylePanel';
-import { IconButton, PanelHeader, SoftButton } from '@/components/ui/panel';
+import { AlertMessage, IconButton, PanelHeader, SoftButton } from '@/components/ui/panel';
 import { useI18n } from '@/lib/i18n';
 import { hasConsecutiveDuplicateStops, isSameStopLocation } from '@/lib/route-stops';
 import { useMeasuredActionGroup } from '@/components/useMeasuredActionGroup';
+import { useAutoDismissedState } from '@/components/useAutoDismissedState';
 
 type RouteWarningKey = 'consecutiveStopWarning';
 
@@ -30,7 +31,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   } = useApp();
   const t = useI18n();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [routeWarning, setRouteWarning] = useState<RouteWarningKey | null>(null);
+  const [routeWarning, setRouteWarning] = useAutoDismissedState<RouteWarningKey | null>(null);
   const { availableRef: routeSettingsRef, showLabels: showRouteSettingsLabel } = useMeasuredActionGroup({
     font: '600 14px Inter, sans-serif',
     groupGap: 0,
@@ -40,14 +41,6 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     labels: [t.routeSettings],
     layout: 'inline',
   });
-
-  useEffect(() => {
-    if (!routeWarning) return;
-
-    const timeoutId = window.setTimeout(() => setRouteWarning(null), 3000);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [routeWarning]);
 
   const handleAddStop = (result: { name: string; coordinates: [number, number] }) => {
     const nextStop = {
@@ -95,9 +88,9 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       <StopSearch onSelect={handleAddStop} />
 
       {routeWarning && (
-        <div className="mb-4 rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-semibold text-[var(--danger)]">
+        <AlertMessage className="mb-4">
           {t[routeWarning]}
-        </div>
+        </AlertMessage>
       )}
 
       <div className="min-h-0 flex-1">

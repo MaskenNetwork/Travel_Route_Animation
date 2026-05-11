@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Download, Film, Loader2, X } from 'lucide-react';
 import { useApp } from '@/lib/store';
 import { getRouteAnimationDurationSeconds } from '@/lib/route-camera';
@@ -15,9 +15,10 @@ import {
 import { loadWorldData } from '@/lib/rendering/world-data';
 import { renderExportFrame } from '@/lib/rendering/export-frame';
 import ExportSettingsControls from '@/components/export/ExportSettingsControls';
-import { IconButton, PanelHeader, PrimaryButton } from '@/components/ui/panel';
+import { AlertMessage, IconButton, PanelHeader, PrimaryButton } from '@/components/ui/panel';
 import { useI18n } from '@/lib/i18n';
 import { useMeasuredActionGroup } from '@/components/useMeasuredActionGroup';
+import { useAutoDismissedState } from '@/components/useAutoDismissedState';
 
 type ExportErrorMessage =
   | { type: 'i18n'; key: 'exportNeedsStops' | 'exportFailed' }
@@ -28,15 +29,7 @@ export default function ExportPanel({ onClose }: { onClose?: () => void }) {
   const t = useI18n();
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
-  const [exportError, setExportError] = useState<ExportErrorMessage | null>(null);
-
-  useEffect(() => {
-    if (!exportError) return;
-
-    const timeoutId = window.setTimeout(() => setExportError(null), 3000);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [exportError]);
+  const [exportError, setExportError] = useAutoDismissedState<ExportErrorMessage | null>(null);
 
   const selectedFormat = getExportFormat(exportSettings.format);
   const selectedResolution = getExportResolution(exportSettings.resolution);
@@ -126,9 +119,9 @@ export default function ExportPanel({ onClose }: { onClose?: () => void }) {
       <ExportSettingsControls settings={exportSettings} onChange={setExportSettings} />
 
       {exportErrorText && (
-        <div className="mt-4 rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-semibold text-[var(--danger)]">
+        <AlertMessage className="mt-4">
           {exportErrorText}
-        </div>
+        </AlertMessage>
       )}
 
       <div ref={exportButtonRef as React.RefObject<HTMLDivElement>} className="mt-4 shrink-0 border-t border-[var(--panel-border)] pt-4">

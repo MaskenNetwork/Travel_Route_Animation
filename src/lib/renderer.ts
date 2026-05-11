@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import { DistanceSettingsState, Language, Stop, Segment, TransportMode, Theme, RouteLineStyle } from '@/types';
 import { getVehicleIcon } from './icons';
 import { getStopThemeColors } from './theme-colors';
-import { getCurrentDistanceFrame, getSegmentDistancesKm } from './route-distance';
+import { convertDistanceFromKm, getCurrentDistanceFrame, getSegmentDistancesKm } from './route-distance';
 import { getStopLocationKey } from './route-stops';
 import { clamp, easeOutBack, easeOutCubic, lerp } from './utils/math';
 
@@ -88,7 +88,7 @@ export function drawGlobeContent(ctx: CanvasRenderingContext2D, options: RenderO
     ctx.lineWidth = 2.5 * pathScale;
     const drawnRouteSegments = new Set<string>();
     for (let i = 0; i < stops.length - 1; i++) {
-      const segProg = Math.min(1, Math.max(0, progress * (stops.length - 1) - i));
+      const segProg = clamp(progress * (stops.length - 1) - i, 0, 1);
       if (segProg <= 0) continue;
       const start = stops[i].coordinates;
       const end = stops[i + 1].coordinates;
@@ -104,7 +104,7 @@ export function drawGlobeContent(ctx: CanvasRenderingContext2D, options: RenderO
   // 4. Stops & Labels
   const segmentCount = Math.max(0, stops.length - 1);
   const activeSegmentIndex = segmentCount > 0
-    ? Math.min(Math.floor(Math.max(0, Math.min(0.999999, progress)) * segmentCount), segmentCount - 1)
+    ? Math.min(Math.floor(clamp(progress, 0, 0.999999) * segmentCount), segmentCount - 1)
     : 0;
   const markerStops = getUniqueStopMarkers(stops);
   markerStops.forEach(({ stop, stopIndexes }) => {
@@ -163,7 +163,7 @@ export function drawGlobeContent(ctx: CanvasRenderingContext2D, options: RenderO
       if (coords) {
         if (isVisibleOnProjection(currentPos, projection)) {
           const segmentCount = stops.length - 1;
-          const scaledProgress = Math.max(0, Math.min(1, progress)) * segmentCount;
+          const scaledProgress = clamp(progress, 0, 1) * segmentCount;
           const currentSegmentIndex = Math.min(Math.floor(scaledProgress), segmentCount - 1);
           const currentSegmentProgress = scaledProgress - currentSegmentIndex;
           const mode = segments[currentSegmentIndex]?.transportMode || 'plane';
@@ -244,7 +244,7 @@ function getCurrentPosition(stops: Stop[], progress: number): [number, number] |
   if (!stops || stops.length === 0) return null;
   if (stops.length === 1) return stops[0].coordinates;
   const segmentCount = stops.length - 1;
-  const scaledProgress = Math.max(0, Math.min(1, progress)) * segmentCount;
+  const scaledProgress = clamp(progress, 0, 1) * segmentCount;
   const segmentIndex = Math.min(Math.floor(scaledProgress), segmentCount - 1);
   const segmentProgress = scaledProgress - segmentIndex;
   const stop1 = stops[segmentIndex];
@@ -509,10 +509,6 @@ function getDistanceOdometerState({
   };
 }
 
-function convertDistanceFromKm(distanceKm: number, unit: DistanceSettingsState['unit']) {
-  return unit === 'mi' ? distanceKm * 0.621371 : distanceKm;
-}
-
 function getFirstVisibleOdometerIndex(value: number) {
   if (value <= 0) return DISTANCE_ODOMETER_DIGITS - 1;
 
@@ -556,7 +552,7 @@ function getSegmentPosition(stops: Stop[], segmentIndex: number, segmentProgress
   if (!stop1 || !stop2) return null;
 
   return d3.geoInterpolate(stop1.coordinates, stop2.coordinates)(
-    Math.max(0, Math.min(1, segmentProgress))
+    clamp(segmentProgress, 0, 1)
   ) as [number, number];
 }
 
@@ -570,7 +566,7 @@ function drawProjectedRouteLine(
   style: RouteLineStyle
 ) {
   const interpolate = d3.geoInterpolate(start, end);
-  const clampedProgress = Math.max(0, Math.min(1, progress));
+  const clampedProgress = clamp(progress, 0, 1);
   const totalDistance = d3.geoDistance(start, end);
   const sampleCount = Math.max(24, Math.ceil(totalDistance * projection.scale() / (10 * visualScale)));
 

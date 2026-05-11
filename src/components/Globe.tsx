@@ -14,6 +14,7 @@ import {
 } from '@/lib/export-options';
 import { loadWorldData } from '@/lib/rendering/world-data';
 import { renderExportFrame } from '@/lib/rendering/export-frame';
+import { clamp } from '@/lib/utils/math';
 
 interface CameraView {
   center: [number, number];
@@ -207,9 +208,9 @@ const Globe: React.FC = () => {
     return {
       center: [
         wrapLongitude(camera.center[0]),
-        Math.max(-85, Math.min(85, camera.center[1])),
+        clampLatitude(camera.center[1]),
       ],
-      scale: Math.max(baseScale * 0.65, Math.min(baseScale * 80, camera.scale)),
+      scale: clamp(camera.scale, baseScale * 0.65, baseScale * 80),
     };
   };
 
@@ -322,28 +323,13 @@ const Globe: React.FC = () => {
         setAnimation({ isPlaying: false });
       }
 
-      const currentFormat = getExportFormat(exportSettingsRef.current.format);
-      const currentPreviewSize = getPreviewSize(currentFormat.ratio);
-      const baseScale = getBaseGlobeScale(currentPreviewSize.width, currentPreviewSize.height);
-      const cameraFrame = getRouteCameraFrame(
-        stopsRef.current,
-        segmentsRef.current,
-        animationRef.current.progress,
-        baseScale
-      );
-      const camera = manualCameraRef.current || {
-        center: cameraFrame?.center || stopsRef.current[0]?.coordinates || [0, 0],
-        scale: cameraFrame?.scale || baseScale,
-      };
+      const camera = getCurrentCameraView();
       const zoomFactor = Math.exp(-event.deltaY * 0.0015);
 
-      manualCameraRef.current = {
-        center: [
-          wrapLongitude(camera.center[0]),
-          Math.max(-85, Math.min(85, camera.center[1])),
-        ],
-        scale: Math.max(baseScale * 0.65, Math.min(baseScale * 80, camera.scale * zoomFactor)),
-      };
+      manualCameraRef.current = clampCameraView({
+        center: camera.center,
+        scale: camera.scale * zoomFactor,
+      });
     };
 
     canvas.addEventListener('wheel', handleWheel, { passive: false });
@@ -400,4 +386,8 @@ function wrapLongitude(longitude: number) {
   while (wrapped > 180) wrapped -= 360;
 
   return wrapped;
+}
+
+function clampLatitude(latitude: number) {
+  return clamp(latitude, -85, 85);
 }

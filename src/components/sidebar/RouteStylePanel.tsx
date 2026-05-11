@@ -4,7 +4,7 @@ import React from 'react';
 import { Moon, Settings2, X, Sun } from 'lucide-react';
 import { AnimationState, DistanceSettingsState, DistanceUnit, RouteLineStyle, Theme } from '@/types';
 import { cn } from '@/lib/utils/cn';
-import { IconButton, PanelHeader, PrimaryButton, SectionLabel } from '@/components/ui/panel';
+import { IconButton, PanelHeader, PrimaryButton, SectionLabel, SegmentedControl } from '@/components/ui/panel';
 import { useI18n } from '@/lib/i18n';
 import { useMeasuredActionGroup } from '@/components/useMeasuredActionGroup';
 
@@ -139,42 +139,6 @@ function ToggleRow({
         className="h-5 w-5 shrink-0 cursor-pointer accent-[var(--action)]"
       />
     </label>
-  );
-}
-
-function SegmentedControl<TValue extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label?: string;
-  value: TValue;
-  options: Array<{ value: TValue; label: string }>;
-  onChange: (value: TValue) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      {label && <span className="block text-[10px] font-black uppercase tracking-widest text-[var(--text-subtle)]">{label}</span>}
-      <div
-        className="grid h-12 gap-2 rounded-xl bg-[var(--panel-muted)] p-1"
-        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
-      >
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className={cn(
-              'h-full rounded-lg px-2 text-xs font-black uppercase tracking-widest transition-all',
-              value === option.value ? 'bg-[var(--action)] text-[var(--on-action)] shadow-sm' : 'text-[var(--text-muted)] hover:bg-[var(--field-hover)]'
-            )}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }
 

@@ -1,6 +1,11 @@
 import React from 'react';
 import { cn } from '@/lib/utils/cn';
 
+type SegmentedOption<TValue extends string | number> = {
+  value: TValue;
+  label: string;
+};
+
 export function PanelHeader({
   icon,
   title,
@@ -39,6 +44,65 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
     <span className="block min-w-0 truncate text-[10px] font-black uppercase tracking-widest text-[var(--text-subtle)]">
       {children}
     </span>
+  );
+}
+
+export function AlertMessage({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-semibold text-[var(--danger)]',
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function SegmentedControl<TValue extends string | number>({
+  label,
+  value,
+  options,
+  onChange,
+  className,
+}: {
+  label?: string;
+  value: TValue;
+  options: Array<SegmentedOption<TValue>>;
+  onChange: (value: TValue) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn('space-y-2', className)}>
+      {label && <SectionLabel>{label}</SectionLabel>}
+      <div
+        className="grid h-12 gap-2 rounded-xl bg-[var(--panel-muted)] p-1"
+        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      >
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={cn(
+              'h-full rounded-lg px-2 text-xs font-black uppercase tracking-widest transition-all',
+              value === option.value
+                ? 'bg-[var(--action)] text-[var(--on-action)] shadow-sm'
+                : 'text-[var(--text-muted)] hover:bg-[var(--field-hover)]'
+            )}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

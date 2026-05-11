@@ -1,27 +1,20 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useApp } from '@/lib/store';
 import { Play, Pause, RotateCcw } from 'lucide-react';
-import { IconButton } from '@/components/ui/panel';
+import { AlertMessage, IconButton } from '@/components/ui/panel';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils/cn';
+import { useAutoDismissedState } from '@/components/useAutoDismissedState';
 
 type PlayWarningKey = 'playNeedsStops';
 
 const Controls: React.FC = () => {
   const { stops, animation, setAnimation } = useApp();
   const t = useI18n();
-  const [playWarning, setPlayWarning] = useState<PlayWarningKey | null>(null);
+  const [playWarning, setPlayWarning] = useAutoDismissedState<PlayWarningKey | null>(null);
   const hasAnyStop = stops.length > 0;
-
-  useEffect(() => {
-    if (!playWarning) return;
-
-    const timeoutId = window.setTimeout(() => setPlayWarning(null), 3000);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [playWarning]);
 
   const handleTogglePlay = () => {
     if (!hasAnyStop) return;
@@ -104,9 +97,9 @@ const Controls: React.FC = () => {
       </div>
 
       {playWarning && (
-        <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-semibold text-[var(--danger)]">
+        <AlertMessage>
           {t[playWarning]}
-        </div>
+        </AlertMessage>
       )}
     </div>
   );
