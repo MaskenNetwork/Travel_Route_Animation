@@ -3,17 +3,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Reorder } from 'framer-motion';
 import { GripVertical, MapPin, Trash2 } from 'lucide-react';
-import { Segment, Stop } from '@/types';
+import { Language, Segment, Stop } from '@/types';
 import { getStopThemeColors } from '@/lib/theme-colors';
 import { getRouteCameraFrame } from '@/lib/route-camera';
 import { isTransportMode, transportOptions } from '@/lib/domain/transport';
 import { sanitizeDurationSeconds } from '@/lib/domain/validation';
 import { clamp, easeOutBack, easeOutCubic } from '@/lib/utils/math';
 import { useI18n } from '@/lib/i18n';
+import { getStopName } from '@/lib/stop-display';
 
 interface StopsListProps {
   stops: Stop[];
   segments: Segment[];
+  language: Language;
   theme: 'light' | 'dark';
   progress: number;
   onRemoveStop: (id: string) => void;
@@ -24,6 +26,7 @@ interface StopsListProps {
 export default function StopsList({
   stops,
   segments,
+  language,
   theme,
   progress,
   onRemoveStop,
@@ -91,6 +94,7 @@ export default function StopsList({
         const themeColors = getStopThemeColors(theme);
         const stopTransition = getSidebarStopTransition(index, displayedStops.length, routeFrame, themeColors);
         const stopColor = stopTransition.color;
+        const stopName = getStopName(stop, language);
         const rowStyle = {
           '--stop-color': stopColor,
           '--stop-scale': stopTransition.scale,
@@ -110,7 +114,7 @@ export default function StopsList({
             >
               <GripVertical size={14} className="shrink-0 text-[var(--text-subtle)]" />
               <span className="h-4 w-4 shrink-0 rounded-full border border-white/80 bg-[var(--stop-color)] shadow-sm" style={{ transform: 'scale(var(--stop-scale))' }} />
-              <span className="flex-1 truncate text-sm font-medium">{stop.name}</span>
+              <span className="flex-1 truncate text-sm font-medium">{stopName}</span>
 
               <div className="flex items-center opacity-0 transition-opacity group-hover:opacity-100">
                 <button
@@ -120,7 +124,8 @@ export default function StopsList({
                     onRemoveStop(stop.id);
                   }}
                   className="flex h-10 w-10 items-center justify-center rounded-lg text-[var(--delete)] hover:bg-[var(--delete-soft)]"
-                  aria-label={`Rimuovi ${stop.name}`}
+                  aria-label={`Rimuovi ${stopName}`}
+                  title={`Rimuovi ${stopName}`}
                 >
                   <Trash2 size={14} />
                 </button>

@@ -98,6 +98,8 @@ function ExportFormatButton({
     <button
       ref={availableRef as React.RefObject<HTMLButtonElement>}
       type="button"
+      title={`${label} (${id})`}
+      aria-label={`${label} (${id})`}
       onClick={onClick}
       className={cn(
         'flex h-12 w-full items-center justify-start gap-3 rounded-xl px-4 text-sm transition-all',

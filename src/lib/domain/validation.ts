@@ -1,4 +1,4 @@
-import { ExportSettingsState, Stop, Theme } from '@/types';
+import { ExportSettingsState, Language, Stop, Theme } from '@/types';
 import { exportFrameRates } from '@/lib/export-options';
 import { clamp } from '@/lib/utils/math';
 
@@ -38,12 +38,32 @@ export function sanitizeCoordinates(coordinates: [number, number]) {
 }
 
 export function sanitizeStop(stop: Stop, theme: Theme, fallbackColor: string): Stop {
+  const name = sanitizeStopName(stop.name);
+  const names = sanitizeLocalizedStopNames(stop.names);
+
   return {
     ...stop,
-    name: stop.name.trim().slice(0, 80) || 'Tappa',
+    name,
+    names,
+    geocodingId: Number.isInteger(stop.geocodingId) ? stop.geocodingId : undefined,
     coordinates: sanitizeCoordinates(stop.coordinates),
     color: sanitizeHexColor(stop.color, fallbackColor),
   };
+}
+
+function sanitizeLocalizedStopNames(names?: Partial<Record<Language, string>>) {
+  if (!names) return undefined;
+
+  const sanitizedNames = {
+    it: names.it ? sanitizeStopName(names.it) : undefined,
+    en: names.en ? sanitizeStopName(names.en) : undefined,
+  };
+
+  return sanitizedNames.it || sanitizedNames.en ? sanitizedNames : undefined;
+}
+
+function sanitizeStopName(name: string) {
+  return name.trim().slice(0, 80) || 'Tappa';
 }
 
 export function sanitizeExportSettings(settings: ExportSettingsState): ExportSettingsState {

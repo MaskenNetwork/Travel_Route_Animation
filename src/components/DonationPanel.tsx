@@ -39,6 +39,8 @@ export default function DonationPanel({ onClose }: { onClose?: () => void }) {
         href={PAYPAL_URL}
         target="_blank"
         rel="noopener noreferrer"
+        title={t.donateWithPaypal}
+        aria-label={t.donateWithPaypal}
         className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--action)] px-4 text-sm font-bold text-[var(--on-action)] shadow-lg shadow-[var(--action-shadow)] transition-all hover:bg-[var(--action-hover)] active:scale-95"
       >
         <HeartHandshake size={18} className="shrink-0" />

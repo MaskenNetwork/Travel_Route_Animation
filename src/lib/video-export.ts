@@ -1,4 +1,10 @@
-import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
+import {
+  BufferTarget,
+  EncodedPacket,
+  EncodedVideoPacketSource,
+  Mp4OutputFormat,
+  Output,
+} from 'mediabunny';
 
 export interface ExportSettings {
   width: number;
@@ -28,19 +34,20 @@ export async function exportVideo(
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('Impossibile creare il contesto canvas per l export.');
 
-  const muxer = new Muxer({
-    target: new ArrayBufferTarget(),
-    video: {
-      codec: 'avc',
-      width: settings.width,
-      height: settings.height
-    },
-    fastStart: 'in-memory'
+  const target = new BufferTarget();
+  const output = new Output({
+    format: new Mp4OutputFormat({ fastStart: 'in-memory' }),
+    target,
   });
+  const videoSource = new EncodedVideoPacketSource('avc');
+  output.addVideoTrack(videoSource, { frameRate: settings.fps });
 
   let encoderError: Error | null = null;
+  const packetWrites: Array<Promise<void>> = [];
   const encoder = new VideoEncoder({
-    output: (chunk, metadata) => muxer.addVideoChunk(chunk, metadata),
+    output: (chunk, metadata) => {
+      packetWrites.push(videoSource.add(EncodedPacket.fromEncodedChunk(chunk), metadata));
+    },
     error: (error) => {
       encoderError = error;
     }
@@ -56,6 +63,7 @@ export async function exportVideo(
     throw new Error(`Impostazioni video non supportate dal browser: ${settings.width}x${settings.height} ${settings.fps}fps.`);
   }
 
+  await output.start();
   encoder.configure(supportedConfig);
 
   const totalFrames = Math.max(1, Math.ceil(settings.fps * settings.duration));
@@ -85,17 +93,31 @@ export async function exportVideo(
     // Give some time for the encoder to process
     if (i % 30 === 0) {
       await encoder.flush();
+      await flushPacketWrites(packetWrites);
     }
   }
 
   await encoder.flush();
+  await flushPacketWrites(packetWrites);
   if (encoderError) {
     throw encoderError;
   }
-  muxer.finalize();
+  videoSource.close();
+  await output.finalize();
 
-  const buffer = (muxer.target as ArrayBufferTarget).buffer;
+  const buffer = target.buffer;
+  if (!buffer) {
+    throw new Error('Impossibile finalizzare il buffer video.');
+  }
+
   return new Blob([buffer], { type: 'video/mp4' });
+}
+
+async function flushPacketWrites(packetWrites: Array<Promise<void>>) {
+  const writes = packetWrites.splice(0);
+  if (writes.length > 0) {
+    await Promise.all(writes);
+  }
 }
 
 function validateExportSettings(settings: ExportSettings) {

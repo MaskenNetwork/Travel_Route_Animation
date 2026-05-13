@@ -4,6 +4,7 @@ import { getVehicleIcon } from './icons';
 import { getStopThemeColors } from './theme-colors';
 import { convertDistanceFromKm, getCurrentDistanceFrame, getSegmentDistancesKm } from './route-distance';
 import { getStopLocationKey } from './route-stops';
+import { getStopName } from './stop-display';
 import { clamp, easeOutBack, easeOutCubic, lerp } from './utils/math';
 
 export interface RenderOptions {
@@ -151,7 +152,7 @@ export function drawGlobeContent(ctx: CanvasRenderingContext2D, options: RenderO
     ctx.textBaseline = 'top';
     ctx.shadowColor = colors.textShadow;
     ctx.shadowBlur = 4 * stopScale;
-    ctx.fillText(stop.name, coords[0], coords[1] + 10 * stopScale);
+    ctx.fillText(getStopName(stop, language), coords[0], coords[1] + 10 * stopScale);
     ctx.shadowBlur = 0; 
   });
 

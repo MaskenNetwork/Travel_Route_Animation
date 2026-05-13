@@ -38,6 +38,7 @@ export default function AppFooter() {
           target="_blank"
           rel="noreferrer"
           aria-label={t.footerGithub}
+          title={t.footerGithub}
           className="action-label-container flex h-9 min-w-9 items-center justify-center gap-1.5 overflow-hidden rounded-lg px-[9px] transition hover:bg-[var(--field-hover)] hover:text-[var(--action)]"
         >
           <span className="shrink-0">
@@ -53,6 +54,7 @@ export default function AppFooter() {
           target="_blank"
           rel="noreferrer"
           aria-label={t.footerLicense}
+          title={t.footerLicense}
           className="action-label-container flex h-9 min-w-9 items-center justify-center gap-1.5 overflow-hidden rounded-lg px-[9px] transition hover:bg-[var(--field-hover)] hover:text-[var(--action)]"
         >
           <Scale className="shrink-0" size={18} />
@@ -66,6 +68,7 @@ export default function AppFooter() {
           target="_blank"
           rel="noreferrer"
           aria-label={t.footerCredits}
+          title={t.footerCredits}
           className="action-label-container flex h-9 min-w-9 items-center justify-center gap-1.5 overflow-hidden rounded-lg px-[9px] transition hover:bg-[var(--field-hover)] hover:text-[var(--action)]"
         >
           <Sparkles className="shrink-0" size={18} />

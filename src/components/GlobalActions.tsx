@@ -1,14 +1,43 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useApp } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import { IconButton } from '@/components/ui/panel';
+import { getLocalizedPlaceById } from '@/lib/geocoding';
 
 export default function GlobalActions() {
-  const { language, setLanguage, uiTheme, setInterfaceTheme } = useApp();
+  const { language, setLanguage, stops, uiTheme, setInterfaceTheme, updateStop } = useApp();
   const t = useI18n();
+
+  useEffect(() => {
+    const stopsToLocalize = stops.filter((stop) => stop.geocodingId && !stop.names?.[language]);
+    if (stopsToLocalize.length === 0) return;
+
+    const controller = new AbortController();
+
+    stopsToLocalize.forEach((stop) => {
+      if (!stop.geocodingId) return;
+
+      getLocalizedPlaceById(stop.geocodingId, language, controller.signal)
+        .then((localizedStop) => {
+          if (!localizedStop || controller.signal.aborted) return;
+
+          updateStop(stop.id, {
+            names: {
+              ...stop.names,
+              [language]: localizedStop.name,
+            },
+          });
+        })
+        .catch((error) => {
+          if ((error as DOMException).name === 'AbortError') return;
+        });
+    });
+
+    return () => controller.abort();
+  }, [language, stops, updateStop]);
 
   return (
     <>

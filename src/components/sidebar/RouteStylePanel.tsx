@@ -112,7 +112,7 @@ export default function RouteStylePanel({
       </div>
 
       <div className="mt-4 shrink-0 border-t border-[var(--panel-border)] pt-4">
-        <PrimaryButton onClick={onClose} className="text-xs uppercase tracking-widest">
+        <PrimaryButton onClick={onClose} title={t.confirmClose} aria-label={t.confirmClose} className="text-xs uppercase tracking-widest">
           {t.confirmClose}
         </PrimaryButton>
       </div>
@@ -160,6 +160,8 @@ function ThemeButton({
   return (
     <button
       type="button"
+      title={label}
+      aria-label={label}
       onClick={onClick}
       className={cn(
         'flex h-full items-center justify-center gap-2 rounded-lg px-3 text-xs font-black uppercase tracking-widest transition-all',

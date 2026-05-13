@@ -19,6 +19,9 @@
   --panel-strong: var(--panel);
   /* Bordi di pannelli, righe lista e separatori. */
   --panel-border: color-mix(in srgb, var(--foreground) 8%, transparent);
+  /* Scrollbar condivise per liste e contenuti orizzontali. */
+  --scrollbar-thumb: color-mix(in srgb, var(--foreground) 22%, transparent);
+  --scrollbar-thumb-hover: color-mix(in srgb, var(--foreground) 36%, transparent);
   /* Fondi tenui per liste, tab e gruppi di opzioni. */
   --panel-muted: color-mix(in srgb, var(--foreground) 5%, transparent);
   /* Sfondo di input, select e controlli neutri. */

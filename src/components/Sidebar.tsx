@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Map, Settings2, X } from 'lucide-react';
 import { useApp } from '@/lib/store';
 import { getStopThemeColors } from '@/lib/theme-colors';
+import { CitySearchResult } from '@/lib/geocoding';
 import StopSearch from '@/components/sidebar/StopSearch';
 import StopsList from '@/components/sidebar/StopsList';
 import RouteStylePanel from '@/components/sidebar/RouteStylePanel';
@@ -21,6 +22,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     segments,
     animation,
     distanceSettings,
+    language,
     addStop,
     removeStop,
     updateSegment,
@@ -42,10 +44,12 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     layout: 'inline',
   });
 
-  const handleAddStop = (result: { name: string; coordinates: [number, number] }) => {
+  const handleAddStop = (result: CitySearchResult) => {
     const nextStop = {
       id: crypto.randomUUID(),
-      name: result.name,
+      name: result.names?.[language] || result.name,
+      names: result.names,
+      geocodingId: result.id,
       coordinates: result.coordinates,
       color: getStopThemeColors(animation.theme).stop,
     };
@@ -97,6 +101,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         <StopsList
           stops={stops}
           segments={segments}
+          language={language}
           theme={animation.theme}
           progress={animation.progress}
           onRemoveStop={removeStop}
@@ -106,7 +111,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       </div>
 
       <div ref={routeSettingsRef as React.RefObject<HTMLDivElement>} className="mt-4 shrink-0 border-t border-[var(--panel-border)] pt-4">
-        <SoftButton onClick={() => setIsSettingsOpen(true)}>
+        <SoftButton onClick={() => setIsSettingsOpen(true)} title={t.routeSettings} aria-label={t.routeSettings}>
           <Settings2 size={16} className="shrink-0" />
           {showRouteSettingsLabel && <span className="whitespace-nowrap">{t.routeSettings}</span>}
         </SoftButton>

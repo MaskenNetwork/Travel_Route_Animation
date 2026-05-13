@@ -67,6 +67,8 @@ export default function Home() {
         >
           <button
             type="button"
+            title={t.route}
+            aria-label={t.route}
             onClick={() => setMobilePanel('route')}
             className="action-label-container top-action-surface flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl px-[14.5px] text-sm font-semibold text-[var(--text-strong)] shadow-xl transition-all hover:text-[var(--action)] active:scale-95"
           >
@@ -75,6 +77,8 @@ export default function Home() {
           </button>
           <button
             type="button"
+            title={t.export}
+            aria-label={t.export}
             onClick={() => setMobilePanel('export')}
             className="action-label-container top-action-surface flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl px-[14.5px] text-sm font-semibold text-[var(--text-strong)] shadow-xl transition-all hover:text-[var(--action)] active:scale-95"
           >
@@ -83,6 +87,8 @@ export default function Home() {
           </button>
           <button
             type="button"
+            title={t.supportProject}
+            aria-label={t.supportProject}
             onClick={() => setMobilePanel('donate')}
             className="action-label-container top-action-surface col-span-2 flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl px-[14.5px] text-sm font-semibold text-[var(--text-strong)] shadow-xl transition-all hover:text-[var(--action)] active:scale-95"
           >
@@ -97,6 +103,7 @@ export default function Home() {
           <button
             type="button"
             aria-label={t.close}
+            title={t.close}
             onClick={() => setMobilePanel(null)}
             className="absolute inset-0 cursor-default"
           />

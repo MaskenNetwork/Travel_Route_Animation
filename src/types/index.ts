@@ -20,6 +20,8 @@ export type RouteLineStyle = 'dashed' | 'solid';
 export interface Stop {
   id: string;
   name: string;
+  names?: Partial<Record<Language, string>>;
+  geocodingId?: number;
   coordinates: [number, number]; // [longitude, latitude]
   color: string;
 }

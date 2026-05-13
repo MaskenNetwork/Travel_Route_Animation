@@ -96,14 +96,70 @@ body {
 }
 
 @layer utilities {
+  .custom-scrollbar {
+    --scrollbar-size: 3px;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+    scrollbar-width: thin;
+  }
   .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    height: var(--scrollbar-size);
+    width: var(--scrollbar-size);
+  }
+  .custom-scrollbar::-webkit-scrollbar:horizontal {
+    height: var(--scrollbar-size);
+  }
+  .custom-scrollbar::-webkit-scrollbar:vertical {
+    width: var(--scrollbar-size);
   }
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--panel-border);
-    border-radius: 10px;
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar:hover {
+    scrollbar-color: var(--scrollbar-thumb-hover) transparent;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  .search-result-scroll {
+    --scrollbar-size: 3px;
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .search-result-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .search-result-scrollbar {
+    --scrollbar-size: 4px;
+    --scrollbar-progress: 0;
+    --scrollbar-thumb-width: min(72%, 11rem);
+    display: block;
+    position: relative;
+    width: 100%;
+    height: var(--scrollbar-size);
+    margin-top: 0.25rem;
+    touch-action: none;
+    user-select: none;
+  }
+  .search-result-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    left: calc(var(--scrollbar-progress) * (100% - var(--scrollbar-thumb-width)));
+    width: var(--scrollbar-thumb-width);
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--scrollbar-thumb);
+  }
+  .search-result-scrollbar:hover .search-result-scrollbar-thumb,
+  .search-result-scrollbar.is-dragging .search-result-scrollbar-thumb {
+    background: var(--scrollbar-thumb-hover);
   }
 }

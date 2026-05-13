@@ -90,6 +90,8 @@ export function SegmentedControl<TValue extends string | number>({
           <button
             key={option.value}
             type="button"
+            title={option.label}
+            aria-label={option.label}
             onClick={() => onChange(option.value)}
             className={cn(
               'h-full rounded-lg px-2 text-xs font-black uppercase tracking-widest transition-all',
@@ -111,14 +113,17 @@ export function IconButton({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const fallbackTitle = typeof props['aria-label'] === 'string' ? props['aria-label'] : undefined;
+
   return (
     <button
       type="button"
+      {...props}
+      title={props.title ?? fallbackTitle}
       className={cn(
         'top-action-surface flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-[var(--text-strong)] transition-all hover:text-[var(--action)] active:scale-95',
         className
       )}
-      {...props}
     >
       {children}
     </button>
@@ -130,14 +135,17 @@ export function PrimaryButton({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const fallbackTitle = typeof props['aria-label'] === 'string' ? props['aria-label'] : undefined;
+
   return (
     <button
       type="button"
+      {...props}
+      title={props.title ?? fallbackTitle}
       className={cn(
         'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--action)] px-4 text-sm font-bold text-[var(--on-action)] shadow-lg shadow-[var(--action-shadow)] transition-all hover:bg-[var(--action-hover)] active:scale-95 disabled:opacity-60',
         className
       )}
-      {...props}
     >
       {children}
     </button>
@@ -149,14 +157,17 @@ export function SoftButton({
   className,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  const fallbackTitle = typeof props['aria-label'] === 'string' ? props['aria-label'] : undefined;
+
   return (
     <button
       type="button"
+      {...props}
+      title={props.title ?? fallbackTitle}
       className={cn(
         'top-action-surface flex h-12 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-[var(--text-strong)] transition-all hover:text-[var(--action)] active:scale-95',
         className
       )}
-      {...props}
     >
       {children}
     </button>

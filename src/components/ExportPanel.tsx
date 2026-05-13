@@ -128,6 +128,8 @@ export default function ExportPanel({ onClose }: { onClose?: () => void }) {
         <PrimaryButton
           onClick={handleExport}
           disabled={!canExport}
+          title={exportButtonLabel}
+          aria-label={exportButtonLabel}
           className="relative overflow-hidden"
         >
           {isExporting ? (

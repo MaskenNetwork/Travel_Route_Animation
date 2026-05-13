@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { CitySearchResult, searchCity } from '@/lib/geocoding';
+import { CitySearchResult, enrichSearchResultsLanguage, searchCity } from '@/lib/geocoding';
 import { PrimaryButton } from '@/components/ui/panel';
 import { useApp } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
+import { Language } from '@/types';
 
 interface StopSearchProps {
   disabled?: boolean;
@@ -29,7 +30,7 @@ export default function StopSearch({ disabled, onSelect }: StopSearchProps) {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
       try {
-        const results = await searchCity(trimmedQuery, language, controller.signal);
+        const results = await searchLocalizedCities(trimmedQuery, language, controller.signal);
         setSearchResults(results);
       } catch (error) {
         if ((error as DOMException).name !== 'AbortError') {
@@ -96,23 +97,188 @@ export default function StopSearch({ disabled, onSelect }: StopSearchProps) {
       </div>
 
       {(searchResults.length > 0 || isSearching) && (
-        <div className="panel-surface absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-xl shadow-2xl">
-          {isSearching && searchResults.length === 0 && (
-            <div className="px-4 py-3 text-sm text-[var(--text-muted)]">{t.searching}</div>
-          )}
-          {searchResults.map((result) => (
-            <button
-              key={`${result.kind}-${result.fullName}-${result.coordinates.join(',')}`}
-              type="button"
-              onClick={() => selectResult(result)}
-              className="flex min-h-12 w-full flex-col justify-center gap-0.5 border-b border-[var(--panel-border)] px-4 py-2 text-left text-sm transition-colors last:border-none hover:bg-[var(--action-soft)]"
-            >
-              <div className="w-full truncate font-semibold leading-tight">{result.name}</div>
-              <div className="w-full truncate text-[10px] leading-tight opacity-60">{result.fullName}</div>
-            </button>
-          ))}
+        <div className="panel-surface absolute left-0 right-0 top-full z-50 mt-2 max-h-60 rounded-xl p-1 shadow-2xl">
+          <div className="custom-scrollbar max-h-[14.5rem] overflow-y-auto">
+            {isSearching && searchResults.length === 0 && (
+              <div className="px-4 py-3 text-sm text-[var(--text-muted)]">{t.searching}</div>
+            )}
+            {searchResults.map((result) => {
+              const resultName = getResultName(result, language);
+              const resultFullName = getResultFullName(result, language);
+              const resultTitle = `${resultName} - ${resultFullName}`;
+
+              return (
+                <button
+                  key={`${result.kind}-${result.fullName}-${result.coordinates.join(',')}`}
+                  type="button"
+                  title={resultTitle}
+                  aria-label={resultTitle}
+                  onClick={() => selectResult(result)}
+                  className="flex min-h-14 w-full flex-col justify-center gap-1 border-b border-[var(--panel-border)] px-4 py-2 text-left text-sm transition-colors last:border-none hover:bg-[var(--action-soft)]"
+                >
+                  <SearchResultScrollableText className="font-semibold leading-tight">
+                    {resultName}
+                  </SearchResultScrollableText>
+                  <SearchResultScrollableText className="text-[10px] leading-tight">
+                    <span className="opacity-60">{resultFullName}</span>
+                  </SearchResultScrollableText>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </form>
   );
+}
+
+interface SearchResultScrollableTextProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+function SearchResultScrollableText({ children, className }: SearchResultScrollableTextProps) {
+  const scrollRef = React.useRef<HTMLSpanElement>(null);
+  const scrollbarRef = React.useRef<HTMLSpanElement>(null);
+  const thumbRef = React.useRef<HTMLSpanElement>(null);
+  const dragOffsetRef = React.useRef(0);
+  const [hasOverflow, setHasOverflow] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [scrollProgress, setScrollProgress] = React.useState(0);
+
+  const updateScrollState = React.useCallback(() => {
+    const element = scrollRef.current;
+
+    if (!element) return;
+
+    const maxScroll = element.scrollWidth - element.clientWidth;
+
+    setHasOverflow(maxScroll > 1);
+    setScrollProgress(maxScroll > 0 ? element.scrollLeft / maxScroll : 0);
+  }, []);
+
+  const scrollToPointer = React.useCallback((clientX: number) => {
+    const element = scrollRef.current;
+    const scrollbar = scrollbarRef.current;
+    const thumb = thumbRef.current;
+
+    if (!element || !scrollbar || !thumb) return;
+
+    const maxScroll = element.scrollWidth - element.clientWidth;
+    const maxThumbLeft = scrollbar.clientWidth - thumb.offsetWidth;
+
+    if (maxScroll <= 0 || maxThumbLeft <= 0) return;
+
+    const scrollbarRect = scrollbar.getBoundingClientRect();
+    const thumbLeft = clientX - scrollbarRect.left - dragOffsetRef.current;
+    const progress = Math.min(Math.max(thumbLeft / maxThumbLeft, 0), 1);
+
+    element.scrollLeft = progress * maxScroll;
+    setScrollProgress(progress);
+  }, []);
+
+  const startScrollbarDrag = React.useCallback(
+    (event: React.PointerEvent<HTMLSpanElement>) => {
+      const scrollbar = scrollbarRef.current;
+      const thumb = thumbRef.current;
+
+      if (!scrollbar || !thumb) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const thumbRect = thumb.getBoundingClientRect();
+      const pointerIsOnThumb = event.clientX >= thumbRect.left && event.clientX <= thumbRect.right;
+
+      dragOffsetRef.current = pointerIsOnThumb ? event.clientX - thumbRect.left : thumb.offsetWidth / 2;
+      scrollbar.setPointerCapture(event.pointerId);
+      setIsDragging(true);
+      scrollToPointer(event.clientX);
+    },
+    [scrollToPointer],
+  );
+
+  const continueScrollbarDrag = React.useCallback(
+    (event: React.PointerEvent<HTMLSpanElement>) => {
+      if (!isDragging) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      scrollToPointer(event.clientX);
+    },
+    [isDragging, scrollToPointer],
+  );
+
+  const stopScrollbarDrag = React.useCallback((event: React.PointerEvent<HTMLSpanElement>) => {
+    if (!isDragging) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    setIsDragging(false);
+  }, [isDragging]);
+
+  React.useEffect(() => {
+    const element = scrollRef.current;
+
+    if (!element) return;
+
+    updateScrollState();
+
+    const resizeObserver = new ResizeObserver(updateScrollState);
+    resizeObserver.observe(element);
+
+    window.addEventListener('resize', updateScrollState);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [children, updateScrollState]);
+
+  const scrollbarStyle = {
+    '--scrollbar-progress': scrollProgress,
+  } as React.CSSProperties;
+
+  return (
+    <span className="block w-full">
+      <span ref={scrollRef} onScroll={updateScrollState} className={`search-result-scroll ${className || ''}`}>
+        {children}
+      </span>
+      {hasOverflow && (
+        <span
+          ref={scrollbarRef}
+          aria-hidden="true"
+          className={`search-result-scrollbar ${isDragging ? 'is-dragging' : ''}`}
+          style={scrollbarStyle}
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={startScrollbarDrag}
+          onPointerMove={continueScrollbarDrag}
+          onPointerUp={stopScrollbarDrag}
+          onPointerCancel={stopScrollbarDrag}
+        >
+          <span ref={thumbRef} className="search-result-scrollbar-thumb" />
+        </span>
+      )}
+    </span>
+  );
+}
+
+async function searchLocalizedCities(query: string, language: Language, signal: AbortSignal) {
+  const alternateLanguage = language === 'it' ? 'en' : 'it';
+  const primaryResults = await searchCity(query, language, signal);
+
+  return enrichSearchResultsLanguage(primaryResults, alternateLanguage, signal);
+}
+
+function getResultName(result: CitySearchResult, language: Language) {
+  return result.names?.[language] || result.name;
+}
+
+function getResultFullName(result: CitySearchResult, language: Language) {
+  return result.fullNames?.[language] || result.fullName;
 }
