@@ -31,7 +31,7 @@ const PREVIEW_FRAME_PADDING = 12;
 const Globe: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { stops, segments, animation, distanceSettings, exportSettings, language, setAnimation } = useApp();
+  const { stops, segments, animation, distanceSettings, exportSettings, language, setAnimation, setExportSettings } = useApp();
   const [worldData, setWorldData] = useState<GeoPermissibleObjects | null>(null);
   const selectedFormat = getExportFormat(exportSettings.format);
   const previewSize = getPreviewSize(selectedFormat.ratio);
@@ -58,6 +58,22 @@ const Globe: React.FC = () => {
       manualCameraRef.current = null;
     }
   }, [animation]);
+
+  useEffect(() => {
+    const screenRatio = window.innerWidth / window.innerHeight;
+    
+    const availableFormats = [
+      { id: '9:16', ratio: 9 / 16 }, // ~0.56
+      { id: '1:1',  ratio: 1 },      // 1.00
+      { id: '16:9', ratio: 16 / 9 }, // ~1.77
+    ] as const;
+
+    const closest = availableFormats.reduce((prev, curr) => 
+      Math.abs(curr.ratio - screenRatio) < Math.abs(prev.ratio - screenRatio) ? curr : prev
+    );
+
+    setExportSettings({ format: closest.id });
+  }, [setExportSettings]);
 
   useEffect(() => {
     distanceSettingsRef.current = distanceSettings;
