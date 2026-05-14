@@ -15,6 +15,7 @@ This web app helps travelers, creators, and video editors create animated travel
 
 ## How to Use
 
+The web app is free to use at this link: [Travel Route Animation](https://travelrouteanimation.vercel.app/)
 1.  **Add Your Stops**: Use the search field to add the cities or places you want to include in your route.
 2.  **Arrange the Route**: Reorder stops or remove the ones you no longer need.
 3.  **Choose Transport Modes**: Select the transport type for each route segment.
@@ -24,7 +25,7 @@ This web app helps travelers, creators, and video editors create animated travel
 
 ## Setup and Installation
 
-To run this web app locally, follow these steps:
+If you want to run this web app locally, follow these steps:
 
 ### Prerequisites
 
