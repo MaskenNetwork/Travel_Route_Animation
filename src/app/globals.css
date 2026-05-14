@@ -97,18 +97,10 @@ body {
 
 @layer utilities {
   .custom-scrollbar {
-    --scrollbar-size: 3px;
-    scrollbar-color: var(--scrollbar-thumb) transparent;
-    scrollbar-width: thin;
+    --scrollbar-size: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar {
     height: var(--scrollbar-size);
-    width: var(--scrollbar-size);
-  }
-  .custom-scrollbar::-webkit-scrollbar:horizontal {
-    height: var(--scrollbar-size);
-  }
-  .custom-scrollbar::-webkit-scrollbar:vertical {
     width: var(--scrollbar-size);
   }
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -118,15 +110,15 @@ body {
     background: var(--scrollbar-thumb);
     border-radius: 9999px;
   }
-  .custom-scrollbar:hover {
-    scrollbar-color: var(--scrollbar-thumb-hover) transparent;
-  }
-  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb-hover);
+  @supports not selector(::-webkit-scrollbar) {
+    .custom-scrollbar {
+      scrollbar-color: var(--scrollbar-thumb) transparent;
+      scrollbar-width: thin;
+    }
   }
 
   .search-result-scroll {
-    --scrollbar-size: 3px;
+    --scrollbar-size: 6px;
     display: block;
     width: 100%;
     overflow-x: auto;
@@ -138,7 +130,7 @@ body {
     display: none;
   }
   .search-result-scrollbar {
-    --scrollbar-size: 4px;
+    --scrollbar-size: 6px;
     --scrollbar-progress: 0;
     --scrollbar-thumb-width: min(72%, 11rem);
     display: block;
@@ -157,9 +149,5 @@ body {
     height: 100%;
     border-radius: 9999px;
     background: var(--scrollbar-thumb);
-  }
-  .search-result-scrollbar:hover .search-result-scrollbar-thumb,
-  .search-result-scrollbar.is-dragging .search-result-scrollbar-thumb {
-    background: var(--scrollbar-thumb-hover);
   }
 }

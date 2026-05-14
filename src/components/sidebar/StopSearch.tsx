@@ -157,7 +157,7 @@ function SearchResultScrollableText({ children, className }: SearchResultScrolla
     setScrollProgress(maxScroll > 0 ? element.scrollLeft / maxScroll : 0);
   }, []);
 
-  const scrollToPointer = React.useCallback((clientX: number) => {
+  const scrollToPointer = React.useCallback((clientX: number, isTouch: boolean) => {
     const element = scrollRef.current;
     const scrollbar = scrollbarRef.current;
     const thumb = thumbRef.current;
@@ -171,7 +171,11 @@ function SearchResultScrollableText({ children, className }: SearchResultScrolla
 
     const scrollbarRect = scrollbar.getBoundingClientRect();
     const thumbLeft = clientX - scrollbarRect.left - dragOffsetRef.current;
-    const progress = Math.min(Math.max(thumbLeft / maxThumbLeft, 0), 1);
+    let progress = Math.min(Math.max(thumbLeft / maxThumbLeft, 0), 1);
+
+    if (isTouch) {
+      progress = 1 - progress;
+    }
 
     element.scrollLeft = progress * maxScroll;
     setScrollProgress(progress);
@@ -179,21 +183,34 @@ function SearchResultScrollableText({ children, className }: SearchResultScrolla
 
   const startScrollbarDrag = React.useCallback(
     (event: React.PointerEvent<HTMLSpanElement>) => {
+      const element = scrollRef.current;
       const scrollbar = scrollbarRef.current;
       const thumb = thumbRef.current;
 
-      if (!scrollbar || !thumb) return;
+      if (!element || !scrollbar || !thumb) return;
 
       event.preventDefault();
       event.stopPropagation();
 
-      const thumbRect = thumb.getBoundingClientRect();
-      const pointerIsOnThumb = event.clientX >= thumbRect.left && event.clientX <= thumbRect.right;
+      const scrollbarRect = scrollbar.getBoundingClientRect();
+      const maxThumbLeft = scrollbar.clientWidth - thumb.offsetWidth;
+      const maxScroll = element.scrollWidth - element.clientWidth;
 
-      dragOffsetRef.current = pointerIsOnThumb ? event.clientX - thumbRect.left : thumb.offsetWidth / 2;
+      if (event.pointerType === 'touch' && maxScroll > 0 && maxThumbLeft > 0) {
+        // Per il touch, creiamo un offset virtuale che faccia corrispondere 
+        // la posizione attuale del dito con l'attuale progresso di scorrimento.
+        // Questo evita il salto (jump) iniziale pur mantenendo la logica invertita.
+        const currentProgress = element.scrollLeft / maxScroll;
+        dragOffsetRef.current = event.clientX - scrollbarRect.left - (1 - currentProgress) * maxThumbLeft;
+      } else {
+        const thumbRect = thumb.getBoundingClientRect();
+        const pointerIsOnThumb = event.clientX >= thumbRect.left && event.clientX <= thumbRect.right;
+        dragOffsetRef.current = pointerIsOnThumb ? event.clientX - thumbRect.left : thumb.offsetWidth / 2;
+      }
+
       scrollbar.setPointerCapture(event.pointerId);
       setIsDragging(true);
-      scrollToPointer(event.clientX);
+      scrollToPointer(event.clientX, event.pointerType === 'touch');
     },
     [scrollToPointer],
   );
@@ -204,7 +221,7 @@ function SearchResultScrollableText({ children, className }: SearchResultScrolla
 
       event.preventDefault();
       event.stopPropagation();
-      scrollToPointer(event.clientX);
+      scrollToPointer(event.clientX, event.pointerType === 'touch');
     },
     [isDragging, scrollToPointer],
   );
