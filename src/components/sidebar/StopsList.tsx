@@ -116,7 +116,7 @@ export default function StopsList({
               <span className="h-4 w-4 shrink-0 rounded-full border border-white/80 bg-[var(--stop-color)] shadow-sm" style={{ transform: 'scale(var(--stop-scale))' }} />
               <span className="flex-1 truncate text-sm font-medium">{stopName}</span>
 
-              <div className="flex items-center opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="flex items-center transition-opacity group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={(event) => {

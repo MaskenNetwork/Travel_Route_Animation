@@ -49,7 +49,7 @@
   /* Testo e icone sopra pulsanti primari. */
   --on-action: #ffffff;
   /* Messaggi di errore e avvisi bloccanti. */
-  --danger: var(--color-final-light);
+  --danger: #ff0000;
   /* Sfondo dei box di errore. */
   --danger-soft: color-mix(in srgb, var(--danger) 10%, transparent);
   /* Bordo dei box di errore. */
@@ -128,7 +128,7 @@
     --field-bg: color-mix(in srgb, white 8%, transparent);
     --field-hover: color-mix(in srgb, white 14%, transparent);
     --action: var(--color-route-dark);
-    --danger: var(--color-final-dark);
+    --danger: #ff0000;
   }
 }
 
@@ -143,7 +143,7 @@
   --field-bg: color-mix(in srgb, var(--foreground) 4%, transparent);
   --field-hover: color-mix(in srgb, var(--foreground) 8%, transparent);
   --action: var(--color-route-light);
-  --danger: var(--color-final-light);
+  --danger: #ff0000;
 }
 
 .dark {
