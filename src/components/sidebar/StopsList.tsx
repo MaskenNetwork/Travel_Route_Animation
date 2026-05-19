@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Reorder } from 'framer-motion';
+import { Reorder, useDragControls } from 'framer-motion';
 import { GripVertical, MapPin, Trash2 } from 'lucide-react';
 import { Language, Segment, Stop } from '@/types';
 import { getStopThemeColors } from '@/lib/theme-colors';
@@ -90,106 +90,170 @@ export default function StopsList({
       className="h-full space-y-3 overflow-y-auto pr-2 custom-scrollbar"
     >
       {displayedStops.map((stop, index) => {
-        const segment = segments[index];
-        const themeColors = getStopThemeColors(theme);
-        const stopTransition = getSidebarStopTransition(index, displayedStops.length, routeFrame, themeColors);
-        const stopColor = stopTransition.color;
-        const stopName = getStopName(stop, language);
-        const rowStyle = {
-          '--stop-color': stopColor,
-          '--stop-scale': stopTransition.scale,
-        } as React.CSSProperties;
-
         return (
-          <Reorder.Item
+          <StopListItem
             key={stop.id}
-            value={stop}
+            stop={stop}
+            segment={segments[index]}
+            index={index}
+            stopCount={displayedStops.length}
+            language={language}
+            theme={theme}
+            routeFrame={routeFrame}
+            durationDrafts={durationDrafts}
+            setDurationDrafts={setDurationDrafts}
             onDragStart={handleDragStart}
-            onDragEnd={handleDrop}
-            className="space-y-2 cursor-grab active:cursor-grabbing"
-          >
-            <div
-              className="group relative flex h-12 min-h-12 items-center gap-3 overflow-hidden rounded-xl border border-[var(--stop-color)] bg-[var(--panel-muted)] px-3 py-0 transition-all hover:bg-[var(--field-hover)]"
-              style={rowStyle}
-            >
-              <GripVertical size={14} className="shrink-0 text-[var(--text-subtle)]" />
-              <span className="h-4 w-4 shrink-0 rounded-full border border-white/80 bg-[var(--stop-color)] shadow-sm" style={{ transform: 'scale(var(--stop-scale))' }} />
-              <span className="flex-1 truncate text-sm font-medium">{stopName}</span>
-
-              <div className="flex items-center transition-opacity group-hover:opacity-100">
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRemoveStop(stop.id);
-                  }}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg text-[var(--delete)] hover:bg-[var(--delete-soft)]"
-                  aria-label={`Rimuovi ${stopName}`}
-                  title={`Rimuovi ${stopName}`}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-
-            {index < displayedStops.length - 1 && segment && (
-              <div className="grid grid-cols-[1fr_6rem] gap-2 rounded-xl border border-dashed border-[var(--panel-border)] bg-[var(--panel-muted)]/45 p-3">
-                <label className="min-w-0">
-                  <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-subtle)]">
-                    {t.vehicle}
-                  </span>
-                  <select
-                    value={segment.transportMode}
-                    onChange={(event) => {
-                      if (isTransportMode(event.target.value)) {
-                        onUpdateSegment(segment.id, { transportMode: event.target.value });
-                      }
-                    }}
-                    className="field-surface h-12 w-full rounded-xl px-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-[var(--action)]/40"
-                  >
-                    {transportOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {t.transport[option.id]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="min-w-0">
-                  <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-subtle)]">
-                    {t.seconds}
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={durationDrafts[segment.id] ?? String(segment.durationSeconds ?? 5).replace('.', ',')}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      setDurationDrafts((current) => ({ ...current, [segment.id]: value }));
-
-                      if (!/^\d*([,.]\d*)?$/.test(value)) return;
-
-                      const parsedDuration = Number(value.replace(',', '.'));
-                      if (Number.isFinite(parsedDuration)) {
-                        onUpdateSegment(segment.id, { durationSeconds: sanitizeDurationSeconds(parsedDuration) });
-                      }
-                    }}
-                    onBlur={() => {
-                      setDurationDrafts((current) => {
-                        const next = { ...current };
-                        delete next[segment.id];
-                        return next;
-                      });
-                    }}
-                    className="field-surface h-12 w-full rounded-xl px-3 text-right text-sm font-semibold text-[var(--foreground)] outline-none transition-all focus:ring-2 focus:ring-[var(--action)]/40"
-                    aria-label={`Durata tratta ${index + 1} in secondi`}
-                  />
-                </label>
-              </div>
-            )}
-          </Reorder.Item>
+            onDrop={handleDrop}
+            onRemoveStop={onRemoveStop}
+            onUpdateSegment={onUpdateSegment}
+          />
         );
       })}
     </Reorder.Group>
+  );
+}
+
+interface StopListItemProps {
+  stop: Stop;
+  segment?: Segment;
+  index: number;
+  stopCount: number;
+  language: Language;
+  theme: 'light' | 'dark';
+  routeFrame: ReturnType<typeof getRouteCameraFrame>;
+  durationDrafts: Record<string, string>;
+  setDurationDrafts: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onDragStart: () => void;
+  onDrop: () => void;
+  onRemoveStop: (id: string) => void;
+  onUpdateSegment: (id: string, updates: Partial<Segment>) => void;
+}
+
+function StopListItem({
+  stop,
+  segment,
+  index,
+  stopCount,
+  language,
+  theme,
+  routeFrame,
+  durationDrafts,
+  setDurationDrafts,
+  onDragStart,
+  onDrop,
+  onRemoveStop,
+  onUpdateSegment,
+}: StopListItemProps) {
+  const t = useI18n();
+  const dragControls = useDragControls();
+  const themeColors = getStopThemeColors(theme);
+  const stopTransition = getSidebarStopTransition(index, stopCount, routeFrame, themeColors);
+  const stopColor = stopTransition.color;
+  const stopName = getStopName(stop, language);
+  const rowStyle = {
+    '--stop-color': stopColor,
+    '--stop-scale': stopTransition.scale,
+  } as React.CSSProperties;
+
+  return (
+    <Reorder.Item
+      value={stop}
+      dragControls={dragControls}
+      dragListener={false}
+      onDragStart={onDragStart}
+      onDragEnd={onDrop}
+      className="space-y-2"
+    >
+      <div
+        className="group relative flex h-12 min-h-12 items-center gap-2 overflow-hidden rounded-xl border border-[var(--stop-color)] bg-[var(--panel-muted)] px-2 py-0 transition-all hover:bg-[var(--field-hover)]"
+        style={rowStyle}
+      >
+        <button
+          type="button"
+          onPointerDown={(event) => {
+            event.preventDefault();
+            dragControls.start(event);
+          }}
+          className="flex h-10 w-10 shrink-0 touch-none items-center justify-center rounded-lg text-[var(--text-subtle)] transition-colors hover:bg-[var(--field-hover)] cursor-grab active:cursor-grabbing"
+          aria-label={`${t.reorderStop} ${stopName}`}
+          title={`${t.reorderStop} ${stopName}`}
+        >
+          <GripVertical size={16} />
+        </button>
+        <span className="h-4 w-4 shrink-0 rounded-full border border-white/80 bg-[var(--stop-color)] shadow-sm" style={{ transform: 'scale(var(--stop-scale))' }} />
+        <span className="flex-1 truncate text-sm font-medium">{stopName}</span>
+
+        <div className="flex items-center transition-opacity group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemoveStop(stop.id);
+            }}
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-[var(--delete)] hover:bg-[var(--delete-soft)]"
+            aria-label={`Rimuovi ${stopName}`}
+            title={`Rimuovi ${stopName}`}
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+
+      {index < stopCount - 1 && segment && (
+        <div className="grid grid-cols-[1fr_6rem] gap-2 rounded-xl border border-dashed border-[var(--panel-border)] bg-[var(--panel-muted)]/45 p-3">
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-subtle)]">
+              {t.vehicle}
+            </span>
+            <select
+              value={segment.transportMode}
+              onChange={(event) => {
+                if (isTransportMode(event.target.value)) {
+                  onUpdateSegment(segment.id, { transportMode: event.target.value });
+                }
+              }}
+              className="field-surface h-12 w-full rounded-xl px-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-[var(--action)]/40"
+            >
+              {transportOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {t.transport[option.id]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="min-w-0">
+            <span className="mb-1 block text-[10px] font-black uppercase tracking-widest text-[var(--text-subtle)]">
+              {t.seconds}
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={durationDrafts[segment.id] ?? String(segment.durationSeconds ?? 5).replace('.', ',')}
+              onChange={(event) => {
+                const value = event.target.value;
+                setDurationDrafts((current) => ({ ...current, [segment.id]: value }));
+
+                if (!/^\d*([,.]\d*)?$/.test(value)) return;
+
+                const parsedDuration = Number(value.replace(',', '.'));
+                if (Number.isFinite(parsedDuration)) {
+                  onUpdateSegment(segment.id, { durationSeconds: sanitizeDurationSeconds(parsedDuration) });
+                }
+              }}
+              onBlur={() => {
+                setDurationDrafts((current) => {
+                  const next = { ...current };
+                  delete next[segment.id];
+                  return next;
+                });
+              }}
+              className="field-surface h-12 w-full rounded-xl px-3 text-right text-sm font-semibold text-[var(--foreground)] outline-none transition-all focus:ring-2 focus:ring-[var(--action)]/40"
+              aria-label={`Durata tratta ${index + 1} in secondi`}
+            />
+          </label>
+        </div>
+      )}
+    </Reorder.Item>
   );
 }
 

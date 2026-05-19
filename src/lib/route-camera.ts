@@ -20,12 +20,10 @@ const DEPARTURE_FADE = 0.2;
 const ARRIVAL_FADE = 0.2;
 const EARTH_RADIUS_KM = 6371;
 const MIN_ZOOM_DISTANCE_KM = 1;
-const DISTANCE_ZOOM_STOPS = [
-  { distanceKm: 100, zoom: 50 },
-  { distanceKm: 1000, zoom: 10 },
-  { distanceKm: 2000, zoom: 5 },
-  { distanceKm: 5000, zoom: 2 },
-];
+const MIN_DISTANCE_ZOOM_MULTIPLIER = 2;
+const MAX_DISTANCE_ZOOM_MULTIPLIER = 1000;
+const MAX_ZOOM_DISTANCE_KM = 5000;
+const DISTANCE_ZOOM_CURVE = 1.5;
 const DEFAULT_SEGMENT_DURATION_SECONDS = 5;
 const MIN_SEGMENT_DURATION_SECONDS = 0.1;
 const STOP_TRANSITION_SECONDS = 0.8;
@@ -177,13 +175,20 @@ function getSegmentTargetScale(
 }
 
 function getDistanceZoomMultiplier(distanceKm: number) {
-  for (const stop of DISTANCE_ZOOM_STOPS) {
-    if (distanceKm <= stop.distanceKm) {
-      return stop.zoom;
-    }
-  }
+  const clampedDistanceKm = clamp(distanceKm, MIN_ZOOM_DISTANCE_KM, MAX_ZOOM_DISTANCE_KM);
+  const distanceProgress = clamp(
+    (Math.log(clampedDistanceKm) - Math.log(MIN_ZOOM_DISTANCE_KM))
+    / (Math.log(MAX_ZOOM_DISTANCE_KM) - Math.log(MIN_ZOOM_DISTANCE_KM)),
+    0,
+    1
+  );
+  const curvedProgress = Math.pow(distanceProgress, DISTANCE_ZOOM_CURVE);
 
-  return DISTANCE_ZOOM_STOPS[DISTANCE_ZOOM_STOPS.length - 1]?.zoom || 1;
+  return Math.exp(lerp(
+    Math.log(MAX_DISTANCE_ZOOM_MULTIPLIER),
+    Math.log(MIN_DISTANCE_ZOOM_MULTIPLIER),
+    curvedProgress
+  ));
 }
 
 function getRouteDurationSeconds(stops: Stop[], segments: Segment[]) {
