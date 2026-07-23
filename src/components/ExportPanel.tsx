@@ -14,6 +14,7 @@ import {
 } from '@/lib/export-options';
 import { loadWorldData } from '@/lib/rendering/world-data';
 import { renderExportFrame } from '@/lib/rendering/export-frame';
+import { preloadVehicleIcons } from '@/lib/icons';
 import ExportSettingsControls from '@/components/export/ExportSettingsControls';
 import { AlertMessage, IconButton, PanelHeader, PrimaryButton } from '@/components/ui/panel';
 import { useI18n } from '@/lib/i18n';
@@ -64,7 +65,10 @@ export default function ExportPanel({ onClose }: { onClose?: () => void }) {
     setExportError(null);
 
     try {
-      const worldData = await loadWorldData();
+      const [worldData] = await Promise.all([
+        loadWorldData(),
+        preloadVehicleIcons(segments.map((segment) => segment.transportMode), animation.vehicleColor),
+      ]);
       const blob = await exportVideo(
         (progress, ctx) => {
           renderExportFrame({

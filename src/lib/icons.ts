@@ -20,6 +20,18 @@ export const svgRepoLinks: Record<TransportMode, string> = {
 const externalIconCache: Map<string, HTMLCanvasElement> = new Map();
 // Cache per le immagini originali per evitare ricaricamenti inutili
 const originalImageCache: Map<string, HTMLImageElement> = new Map();
+const imageLoadCache: Map<string, Promise<HTMLImageElement>> = new Map();
+
+export async function preloadVehicleIcons(modes: TransportMode[], color: string) {
+  const defaultModes: TransportMode[] = ['plane'];
+  const uniqueModes = Array.from(new Set(modes.length > 0 ? modes : defaultModes));
+
+  await Promise.all(uniqueModes.map(async (mode) => {
+    const url = svgRepoLinks[mode] || svgRepoLinks.car;
+    const img = await loadVehicleImage(url);
+    createTintedIcon(mode, color, img);
+  }));
+}
 
 /**
  * Recupera l'icona da SVG Repo tramite link esterno, 
@@ -32,6 +44,16 @@ export function getVehicleIcon(mode: TransportMode, color: string): HTMLCanvasEl
   const cached = externalIconCache.get(cacheKey);
   if (cached) return cached;
 
+  const img = getOrCreateVehicleImage(url);
+
+  if (img.complete && (img.naturalWidth > 0 || img.width > 0)) {
+    return createTintedIcon(mode, color, img);
+  }
+
+  return null;
+}
+
+function getOrCreateVehicleImage(url: string) {
   let img = originalImageCache.get(url);
   if (!img) {
     img = new Image();
@@ -42,31 +64,55 @@ export function getVehicleIcon(mode: TransportMode, color: string): HTMLCanvasEl
     originalImageCache.set(url, img);
   }
 
-  if (img.complete && (img.naturalWidth > 0 || img.width > 0)) {
-    const canvas = document.createElement('canvas');
-    const size = 512; // Risoluzione interna alta per evitare sgranature quando l'utente ingrandisce.
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
+  return img;
+}
 
-    if (ctx) {
-      ctx.save();
+function loadVehicleImage(url: string) {
+  const existing = imageLoadCache.get(url);
+  if (existing) return existing;
 
-      // Disegniamo l'icona originale
-      ctx.drawImage(img, 0, 0, size, size);
-      
-      // Applichiamo il Colore (Tinting)
-      // source-in mantiene la forma dell'icona e la riempie con il fillStyle
-      ctx.globalCompositeOperation = 'source-in';
-      ctx.fillStyle = color;
-      ctx.fillRect(0, 0, size, size);
-      
-      ctx.restore();
-      
-      externalIconCache.set(cacheKey, canvas);
-      return canvas;
+  const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = getOrCreateVehicleImage(url);
+
+    if (img.complete && (img.naturalWidth > 0 || img.width > 0)) {
+      resolve(img);
+      return;
     }
-  }
 
-  return null;
+    img.addEventListener('load', () => resolve(img), { once: true });
+    img.addEventListener('error', () => reject(new Error(`Unable to load vehicle icon: ${url}`)), { once: true });
+  }).then(async (img) => {
+    if ('decode' in img) {
+      await img.decode().catch(() => undefined);
+    }
+
+    return img;
+  });
+
+  imageLoadCache.set(url, loadPromise);
+  return loadPromise;
+}
+
+function createTintedIcon(mode: TransportMode, color: string, img: HTMLImageElement) {
+  const cacheKey = `${mode}-${color}`;
+  const cached = externalIconCache.get(cacheKey);
+  if (cached) return cached;
+
+  const canvas = document.createElement('canvas');
+  const size = 512; // Risoluzione interna alta per evitare sgranature quando l'utente ingrandisce.
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) return null;
+
+  ctx.save();
+  ctx.drawImage(img, 0, 0, size, size);
+  ctx.globalCompositeOperation = 'source-in';
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, size, size);
+  ctx.restore();
+
+  externalIconCache.set(cacheKey, canvas);
+  return canvas;
 }
